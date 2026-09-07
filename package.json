@@ -1,14 +1,13 @@
 {
-  "name": "bunker-neurona",
+  "name": "bunker-neuronas",
   "version": "1.0.0",
-  "description": "Neurona central de Bunket Cloud Pro",
+  "description": "Neurona TradeRival",
   "main": "neurona.js",
   "scripts": {
     "start": "node neurona.js"
   },
   "dependencies": {
-    "cors": "^2.8.5",
-    "dotenv": "^16.4.5",
+    "axios": "^1.6.8",
     "express": "^4.19.2",
     "ws": "^8.16.0"
   }

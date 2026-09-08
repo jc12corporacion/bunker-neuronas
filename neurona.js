@@ -35,6 +35,20 @@ const WHITELIST_FOREX = [
 ];
 
 const app = express();
+
+// Rutas raíz obligatorias añadidas para responderle al Health Check de Render y evitar el timeout del puerto
+app.get('/', (req, res) => {
+    res.status(200).json({
+        status: 'online',
+        service: 'bunker-neuronas',
+        timestamp: new Date().toISOString()
+    });
+});
+
+app.get('/health', (req, res) => {
+    res.status(200).send('OK');
+});
+
 const server = http.createServer(app);
 const wss = new WebSocketServer({ server });
 

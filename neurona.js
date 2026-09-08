@@ -72,7 +72,9 @@ async function sincronizarCriptosReales() {
                 }
             });
         }
-    } catch (err) {}
+    } catch (err) {
+        // Silencioso para evitar que tire abajo el hilo principal si la API externa titubea
+    }
 }
 
 async function sincronizarForexReales() {

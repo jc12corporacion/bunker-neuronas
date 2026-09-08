@@ -202,7 +202,8 @@ server.listen(PORT, () => {
 
 
 function conectarBunkerBinance() {
-  const ws = new WebSocket('wss://stream.binance.com:9443/ws/!miniTicker@arr');
+  const ws = new WebSocket('wss://data-stream.binance.vision:9443/ws/!miniTicker@arr');
+
 
   ws.on('open', () => {
     console.log('--- BUNKER CONECTADO A BINANCE: Tubería abierta y activa ---');

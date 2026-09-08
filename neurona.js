@@ -245,3 +245,13 @@ function conectarBunkerBinance() {
 // Arrancamos el motor de la conexión
 conectarBunkerBinance();
 
+
+
+// Endpoint para que el frontend consulte el estado actual de la RAM del Bunker
+app.get('/api/bunker-status', (req, res) => {
+  res.json({
+    status: 'ONLINE',
+    totalPairsTracked: Object.keys(ramBunkerState.cryptoFeeds).length,
+    data: ramBunkerState.cryptoFeeds
+  });
+});

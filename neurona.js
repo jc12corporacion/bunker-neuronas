@@ -2,7 +2,6 @@ const http = require('http');
 const express = require('express');
 const axios = require('axios');
 
-// 1. Los 100 pares de criptomonedas
 const WHITELIST_CRYPTO = [
   'BTCUSDT', 'ETHUSDT', 'BNBUSDT', 'SOLUSDT', 'XRPUSDT',
   'ADAUSDT', 'DOGEUSDT', 'AVAXUSDT', 'LINKUSDT', 'SUIUSDT',
@@ -26,7 +25,6 @@ const WHITELIST_CRYPTO = [
   'JUPUSDT', 'PYTHUSDT', 'JTOUSDT', 'TNSRUSDT', 'ZEUSUSDT'
 ];
 
-// 2. Los 34 pares de Forex y Commodities
 const FOREX_COMMODITIES_LIST = [
   "EURUSD", "GBPUSD", "USDJPY", "AUDUSD", "USDCAD", "USDCHF", "NZDUSD",
   "EURGBP", "EURJPY", "GBPJPY", "AUDJPY", "CADJPY", "CHFJPY", "NZDJPY",
@@ -45,7 +43,6 @@ let marketRAM = {
     forexCommodities: new Map()
 };
 
-// Inicialización base en RAM para arranque inmediato
 function inicializarBunkerRAM() {
     WHITELIST_CRYPTO.forEach(pair => {
         let base = pair.includes('BTC') ? 61200 : pair.includes('ETH') ? 2450 : 1.0;
@@ -60,7 +57,6 @@ function inicializarBunkerRAM() {
 }
 inicializarBunkerRAM();
 
-// Sincronización limpia con CoinCap (Libre de bloqueo 451 en Render)
 async function sincronizarCriptosReales() {
     try {
         const response = await axios.get('https://api.coincap.io/v2/assets?limit=100', { timeout: 5000 });
@@ -76,7 +72,6 @@ async function sincronizarCriptosReales() {
     } catch (err) {}
 }
 
-// Sincronización de Forex limpia y sin saturar
 async function sincronizarForexReal() {
     try {
         const response = await axios.get('https://open.er-api.com/v6/latest/USD', { timeout: 5000 });
@@ -104,13 +99,11 @@ async function sincronizarForexReal() {
     } catch (err) {}
 }
 
-// Llamadas espaciadas en segundo plano
 setInterval(sincronizarCriptosReales, 10000);
 setInterval(sincronizarForexReal, 60000);
 sincronizarCriptosReales();
 sincronizarForexReal();
 
-// NEURONA DE ALTA FRECUENCIA (50ms): Despacha el precio localmente al frontend sin estresar ninguna API
 function iniciarMotorDeAltaFrecuencia() {
     setInterval(() => {
         marketRAM.crypto.forEach((data) => {
@@ -146,8 +139,9 @@ wss.on('connection', (ws) => {
     }));
 });
 
-const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => {
+// Enlace obligatorio y limpio para que Render detecte el puerto de red al instante
+const PORT = process.env.PORT || 10000;
+server.listen(PORT, '0.0.0.0', () => {
     console.log(`[NEURONA ACTIVA] Despachando a 50ms en puerto ${PORT}`);
     iniciarMotorDeAltaFrecuencia();
 });

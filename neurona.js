@@ -84,44 +84,37 @@ function inicializarBunkerRAM() {
 }
 inicializarBunkerRAM();
 
-async function sincronizarMercadoReal() {
+// Consulta HTTP directa a Binance desde el servidor de USA (IP limpia sin bloqueos)
+async function sincronizarBinanceUSA() {
     try {
-        const fsyms = WHITELIST_CRYPTO.map(p => p.replace('USDT', '')).join(',');
-        const url = `https://min-api.cryptocompare.com/data/pricemulti?fsyms=${fsyms}&tsyms=USDT`;
-        
-        const response = await axios.get(url, { timeout: 7000 });
-        if (response.data) {
-            Object.keys(response.data).forEach(coin => {
-                const pair = `${coin}USDT`;
-                const price = response.data[coin].USDT;
-                if (price && marketRAM.crypto.has(pair)) {
+        const response = await axios.get('https://api.binance.com/api/v3/ticker/price', { timeout: 6000 });
+        if (response.data && Array.isArray(response.data)) {
+            const binanceMap = new Map();
+            response.data.forEach(item => {
+                binanceMap.set(item.symbol, parseFloat(item.price));
+            });
+
+            WHITELIST_CRYPTO.forEach(pair => {
+                if (binanceMap.has(pair)) {
                     marketRAM.crypto.set(pair, {
-                        price: parseFloat(price),
+                        price: binanceMap.get(pair),
                         updated: Date.now()
                     });
                 }
             });
+            console.log('[BÚNKER USA]: 100 precios reales sincronizados perfectamente desde Binance.');
         }
     } catch (err) {
-        console.error('[AVISO SYNC]: Usando respaldo en RAM interna.');
+        console.error('[AVISO USA]: Error de enlace HTTP con Binance:', err.message);
     }
 }
 
-sincronizarMercadoReal();
-setInterval(sincronizarMercadoReal, 4000);
+sincronizarBinanceUSA();
+setInterval(sincronizarBinanceUSA, 4000); // Sincronización real cada 4 segundos
 
-// Motor de alta frecuencia (50ms) para inyectar datos en tiempo real al Canvas
+// Motor de alta frecuencia (50ms) para inyectar fluidez al milisegundo hacia el Canvas
 function iniciarMotorDeAltaFrecuencia() {
     setInterval(() => {
-        // Micro-variaciones de cripto
-        marketRAM.crypto.forEach((data, pair) => {
-            const factor = data.price < 1 ? 0.001 : 0.0001;
-            const delta = (Math.random() - 0.49) * factor * data.price;
-            data.price = Number((data.price + delta).toFixed(data.price < 1 ? 6 : 2));
-            data.updated = Date.now();
-        });
-
-        // Micro-variaciones de los 34 pares de Forex y commodities
         marketRAM.forexCommodities.forEach((data, pair) => {
             const factor = pair.includes('JPY') ? 0.0004 : 0.00005;
             const delta = (Math.random() - 0.49) * factor * data.price;
@@ -154,7 +147,7 @@ wss.on('connection', (ws) => {
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
-    console.log(`[NEURONA BLINDADA] Operando en puerto ${PORT} con Cripto y Forex`);
+    console.log(`[NEURONA ENLACE USA] Operando en puerto ${PORT}`);
     iniciarMotorDeAltaFrecuencia();
 });
 

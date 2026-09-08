@@ -100,7 +100,7 @@ initialForexCommodityPairs.forEach(item => {
 // ==========================================
 async function sincronizarBunkerBinanceHTTP() {
   try {
-    const response = await axios.get('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,binancecoin,solana,ripple,cardano,dogecoin,avalanche-2,chainlink,sui,near,aptos,render,injective,arbitrum,optimism,polygon-ecosystem-token,fantom,celestia,render-token,fetch-ai,internet-computer,cosmos,uniswap,pepe,shiba-inu,wif,floki,bonk,litecoin,bitcoin-cash,ethereum-classic,filecoin,the-graph,thorchain,stacks,immutable-x,algorand,vechain,hedera,elrond,theta-token,the-sandbox,decentraland,gala,chiliz,flow,curve-dao-token,lido-dao,synthetix,maker,aave,compound-governance-token,zrx,basic-attention-token,enjincoin,kava,zilliqa,iotex,ankr,ocean-protocol,certik,rlc,band-protocol,dash,zcash,monero,eos,neo,ontology,qtum,icon,iost,ravencoin,zencash,siacoin,ckb,helium,arweave,storj,moonbeam,astar,moonriver,bome,mew,notcoin,dogus,popcat,neiro,turbo,pnut,act,goat,sats,shib,pepe,floki,usd-coin&vs_currencies=usd', { timeout: 6000 });
+    const response = await axios.get('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,binancecoin,solana,ripple,cardano,dogecoin,avalanche-2,chainlink,sui,near,aptos,render,injective,arbitrum,optimism,polygon-ecosystem-token,fantom,celestia,render-token,fetch-ai,internet-computer,cosmos,uniswap,pepe,shiba-inu,wif,floki,bonk,litecoin,bitcoin-cash,ethereum-classic,filecoin,the-graph,thorchain,stacks,immutable-x,algorand,vechain,hedera,elrond,theta-token,the-sandbox,decentraland,gala,chiliz,flow,curve-dao-token,lido-dao,synthetix,maker,aave,compound-governance-token,zrx,basic-attention-token,enjincoin,kava,zilliqa,iotex,ankr,ocean-protocol,certik,rlc,band-protocol,dash,zcash,monero,eos,neo,ontology,qtum,icon,iost,ravencoin,zencash,siacoin,ckb,helium,arweave,storj,moonbeam,astar,moonriver,bome,mew,notcoin,dogus,popcat,neiro,turbo,pnut,act,goat,sats,shib,pepe,floki,usd-coin&vs_currencies=usd', { timeout: 8000 });
     
     const data = response.data;
     
@@ -222,10 +222,10 @@ app.get('/api/bunker-status', (req, res) => {
 });
 
 // ==========================================
-// 6. LATIDO DEL MOTOR (Reloj de 3 Segundos)
+// 6. LATIDO DEL MOTOR (Reloj de 15 Segundos)
 // ==========================================
 sincronizarBunkerBinanceHTTP();
-setInterval(sincronizarBunkerBinanceHTTP, 3000);
+setInterval(sincronizarBunkerBinanceHTTP, 15000);
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {

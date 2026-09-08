@@ -1,11 +1,9 @@
 const http = require('http');
 const express = require('express');
 const axios = require('axios');
+const { WebSocketServer } = require('ws');
 
-// ==========================================
-// BLOQUE 1: WHITELIST DE CRIPTOMONEDAS (API CoinCap)
-// ==========================================
-const WHITELIST_CRYPTO = [
+const WHITELIST_PAIRS = [
   'BTCUSDT', 'ETHUSDT', 'BNBUSDT', 'SOLUSDT', 'XRPUSDT',
   'ADAUSDT', 'DOGEUSDT', 'AVAXUSDT', 'LINKUSDT', 'SUIUSDT',
   'NEARUSDT', 'APTUSDT', 'RENDERUSDT', 'INJUSDT', 'ARBUSDT',
@@ -28,9 +26,6 @@ const WHITELIST_CRYPTO = [
   'JUPUSDT', 'PYTHUSDT', 'JTOUSDT', 'TNSRUSDT', 'ZEUSUSDT'
 ];
 
-// ==========================================
-// BLOQUE 2: WHITELIST DE FOREX Y COMMODITIES (API Tasas Reales)
-// ==========================================
 const WHITELIST_FOREX = [
   'EURUSD', 'GBPUSD', 'USDJPY', 'AUDUSD', 'USDCAD', 'USDCHF', 'NZDUSD',
   'EURGBP', 'EURJPY', 'GBPJPY', 'AUDJPY', 'EURAUD', 'EURNZD', 'GBPCAD',
@@ -41,7 +36,6 @@ const WHITELIST_FOREX = [
 
 const app = express();
 const server = http.createServer(app);
-const WebSocketServer = require('ws').Server;
 const wss = new WebSocketServer({ server });
 
 let marketRAM = {
@@ -50,7 +44,7 @@ let marketRAM = {
 };
 
 function inicializarBunkerRAM() {
-    WHITELIST_CRYPTO.forEach(pair => {
+    WHITELIST_PAIRS.forEach(pair => {
         marketRAM.crypto.set(pair, { price: 0, updated: Date.now() });
     });
 
@@ -72,9 +66,7 @@ async function sincronizarCriptosReales() {
                 }
             });
         }
-    } catch (err) {
-        // Control silencioso para proteger el hilo principal
-    }
+    } catch (err) {}
 }
 
 async function sincronizarForexReales() {
@@ -155,5 +147,4 @@ server.listen(PORT, '0.0.0.0', () => {
     sincronizarForexReales();
     iniciarMotorDeAltaFrecuencia();
 });
-
 

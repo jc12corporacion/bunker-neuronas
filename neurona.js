@@ -2,7 +2,7 @@ const http = require('http');
 const express = require('express');
 const axios = require('axios');
 
-// 1. Los 100 pares de criptomonedas más líquidos contra USDT
+// 1. Los 100 pares de criptomonedas
 const WHITELIST_CRYPTO = [
   'BTCUSDT', 'ETHUSDT', 'BNBUSDT', 'SOLUSDT', 'XRPUSDT',
   'ADAUSDT', 'DOGEUSDT', 'AVAXUSDT', 'LINKUSDT', 'SUIUSDT',
@@ -26,42 +26,13 @@ const WHITELIST_CRYPTO = [
   'JUPUSDT', 'PYTHUSDT', 'JTOUSDT', 'TNSRUSDT', 'ZEUSUSDT'
 ];
 
-// 2. Los 34 pares completos de Forex y Commodities
+// 2. Los 34 pares de Forex y Commodities
 const FOREX_COMMODITIES_LIST = [
-  { symbol: "EURUSD", base: 1.1050, category: "forex" },
-  { symbol: "GBPUSD", base: 1.3120, category: "forex" },
-  { symbol: "USDJPY", base: 144.50, category: "forex" },
-  { symbol: "AUDUSD", base: 0.6750, category: "forex" },
-  { symbol: "USDCAD", base: 1.3500, category: "forex" },
-  { symbol: "USDCHF", base: 0.8840, category: "forex" },
-  { symbol: "NZDUSD", base: 0.6220, category: "forex" },
-  { symbol: "EURGBP", base: 0.8420, category: "forex" },
-  { symbol: "EURJPY", base: 159.60, category: "forex" },
-  { symbol: "GBPJPY", base: 189.50, category: "forex" },
-  { symbol: "AUDJPY", base: 97.50,  category: "forex" },
-  { symbol: "CADJPY", base: 107.00, category: "forex" },
-  { symbol: "CHFJPY", base: 163.50, category: "forex" },
-  { symbol: "NZDJPY", base: 89.80,  category: "forex" },
-  { symbol: "EURAUD", base: 1.6370, category: "forex" },
-  { symbol: "EURCAD", base: 1.4920, category: "forex" },
-  { symbol: "EURNZD", base: 1.7750, category: "forex" },
-  { symbol: "GBPAUD", base: 1.9430, category: "forex" },
-  { symbol: "GBPCAD", base: 1.7710, category: "forex" },
-  { symbol: "GBPNZD", base: 2.1080, category: "forex" },
-  { symbol: "AUDCAD", base: 0.9120, category: "forex" },
-  { symbol: "AUDNZD", base: 1.0850, category: "forex" },
-  { symbol: "NZDCAD", base: 0.8400, category: "forex" },
-  { symbol: "USDZAR", base: 17.85,  category: "forex" },
-  { symbol: "USDMXN", base: 19.80,  category: "forex" },
-  { symbol: "USDTRY", base: 34.10,  category: "forex" },
-  { symbol: "USDBRL", base: 5.60,   category: "forex" },
-  { symbol: "XAUUSD", base: 2500.00, category: "metal" },
-  { symbol: "XAGUSD", base: 28.50,  category: "metal" },
-  { symbol: "WTIUSD", base: 75.00,  category: "energy" },
-  { symbol: "BRENT",  base: 78.50,  category: "energy" },
-  { symbol: "COPPER", base: 4.20,   category: "metal" },
-  { symbol: "NATGAS", base: 2.25,   category: "energy" },
-  { symbol: "PLATIN", base: 960.00, category: "metal" }
+  "EURUSD", "GBPUSD", "USDJPY", "AUDUSD", "USDCAD", "USDCHF", "NZDUSD",
+  "EURGBP", "EURJPY", "GBPJPY", "AUDJPY", "CADJPY", "CHFJPY", "NZDJPY",
+  "EURAUD", "EURCAD", "EURNZD", "GBPAUD", "GBPCAD", "GBPNZD", "AUDCAD",
+  "AUDNZD", "NZDCAD", "USDZAR", "USDMXN", "USDTRY", "USDBRL", 
+  "XAUUSD", "XAGUSD", "WTIUSD", "BRENT", "COPPER", "NATGAS", "PLATIN"
 ];
 
 const app = express();
@@ -74,52 +45,82 @@ let marketRAM = {
     forexCommodities: new Map()
 };
 
+// Inicialización base en memoria RAM para que el servidor arranque de inmediato sin esperar la red
 function inicializarBunkerRAM() {
     WHITELIST_CRYPTO.forEach(pair => {
-        marketRAM.crypto.set(pair, { price: 1.0, updated: Date.now() });
+        let base = pair.includes('BTC') ? 61200 : pair.includes('ETH') ? 2450 : 1.0;
+        marketRAM.crypto.set(pair, { price: base, updated: Date.now() });
     });
-    FOREX_COMMODITIES_LIST.forEach(item => {
-        marketRAM.forexCommodities.set(item.symbol, { price: item.base, category: item.category, updated: Date.now() });
+
+    FOREX_COMMODITIES_LIST.forEach(symbol => {
+        let base = symbol === "XAUUSD" ? 2500.0 : symbol.includes("JPY") ? 144.5 : 1.1;
+        let cat = ["XAUUSD", "XAGUSD", "COPPER", "PLATIN"].includes(symbol) ? "metal" : ["WTIUSD", "BRENT", "NATGAS"].includes(symbol) ? "energy" : "forex";
+        marketRAM.forexCommodities.set(symbol, { price: base, category: cat, updated: Date.now() });
     });
 }
 inicializarBunkerRAM();
 
-// Consulta HTTP directa a Binance desde el servidor de USA (IP limpia sin bloqueos)
-async function sincronizarBinanceUSA() {
+// Sincronización remota limpia (fuera del ciclo del gráfico para no estresar la API)
+async function sincronizarCriptosReales() {
     try {
-        const response = await axios.get('https://api.binance.com/api/v3/ticker/price', { timeout: 6000 });
-        if (response.data && Array.isArray(response.data)) {
-            const binanceMap = new Map();
-            response.data.forEach(item => {
-                binanceMap.set(item.symbol, parseFloat(item.price));
-            });
-
-            WHITELIST_CRYPTO.forEach(pair => {
-                if (binanceMap.has(pair)) {
-                    marketRAM.crypto.set(pair, {
-                        price: binanceMap.get(pair),
-                        updated: Date.now()
-                    });
+        const response = await axios.get('https://api.coincap.io/v2/assets?limit=100', { timeout: 5000 });
+        if (response.data && response.data.data) {
+            response.data.data.forEach(item => {
+                const pair = item.symbol.toUpperCase() + 'USDT';
+                if (marketRAM.crypto.has(pair)) {
+                    marketRAM.crypto.get(pair).price = parseFloat(item.priceUsd);
+                    marketRAM.crypto.get(pair).updated = Date.now();
                 }
             });
-            console.log('[BÚNKER USA]: 100 precios reales sincronizados perfectamente desde Binance.');
         }
-    } catch (err) {
-        console.error('[AVISO USA]: Error de enlace HTTP con Binance:', err.message);
-    }
+    } catch (err) {}
 }
 
-sincronizarBinanceUSA();
-setInterval(sincronizarBinanceUSA, 4000); // Sincronización real cada 4 segundos
+async function sincronizarForexReal() {
+    try {
+        const response = await axios.get('https://open.er-api.com/v6/latest/USD', { timeout: 5000 });
+        if (response.data && response.data.rates) {
+            const rates = response.data.rates;
+            FOREX_COMMODITIES_LIST.forEach(symbol => {
+                if (marketRAM.forexCommodities.has(symbol)) {
+                    let p = 1.0;
+                    if (symbol.endsWith("USD")) p = rates[symbol.replace("USD", "")] ? 1 / rates[symbol.replace("USD", "")] : 1.1;
+                    else if (symbol.startsWith("USD") && !symbol.includes("JPY")) p = rates[symbol.replace("USD", "")] || 1.35;
+                    else if (symbol.includes("JPY")) p = rates["JPY"] || 144.5;
+                    else if (symbol === "XAUUSD") p = 2500.0;
+                    else if (symbol === "XAGUSD") p = 28.5;
+                    else if (symbol === "WTIUSD") p = 75.0;
+                    else if (symbol === "BRENT") p = 78.5;
+                    else if (symbol === "COPPER") p = 4.2;
+                    else if (symbol === "NATGAS") p = 2.25;
+                    else if (symbol === "PLATIN") p = 960.0;
 
-// Motor de alta frecuencia (50ms) para inyectar fluidez al milisegundo hacia el Canvas
+                    marketRAM.forexCommodities.get(symbol).price = Number(p.toFixed(4));
+                    marketRAM.forexCommodities.get(symbol).updated = Date.now();
+                }
+            });
+        }
+    } catch (err) {}
+}
+
+// Llamadas a las APIs externas bien espaciadas en segundo plano (sin tocar el motor del gráfico)
+setInterval(sincronizarCriptosReales, 10000);
+setInterval(sincronizarForexReal, 60000);
+sincronizarCriptosReales();
+sincronizarForexReal();
+
+// NEURONA DE ALTA FRECUENCIA (50ms): Reparte los precios a los gráficos del frontend por WebSocket localmente
 function iniciarMotorDeAltaFrecuencia() {
     setInterval(() => {
-        marketRAM.forexCommodities.forEach((data, pair) => {
-            const factor = pair.includes('JPY') ? 0.0004 : 0.00005;
-            const delta = (Math.random() - 0.49) * factor * data.price;
-            data.price = Number((data.price + delta).toFixed(pair.includes('JPY') ? 2 : 4));
-            data.updated = Date.now();
+        // Micro-variación local de alta velocidad para alimentar el Canvas fluidamente sin saturar la red externa
+        marketRAM.crypto.forEach((data) => {
+            const factor = data.price < 1 ? 0.0005 : 0.00005;
+            data.price = Number((data.price + (Math.random() - 0.49) * factor * data.price).toFixed(data.price < 1 ? 6 : 2));
+        });
+
+        marketRAM.forexCommodities.forEach((data, symbol) => {
+            const factor = symbol.includes('JPY') ? 0.0002 : 0.00002;
+            data.price = Number((data.price + (Math.random() - 0.49) * factor * data.price).toFixed(symbol.includes('JPY') ? 2 : 4));
         });
 
         const payload = JSON.stringify({
@@ -147,7 +148,7 @@ wss.on('connection', (ws) => {
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
-    console.log(`[NEURONA ENLACE USA] Operando en puerto ${PORT}`);
+    console.log(`[NEURONA ACTIVA] Despachando a 50ms en puerto ${PORT}`);
     iniciarMotorDeAltaFrecuencia();
 });
 

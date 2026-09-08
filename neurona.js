@@ -199,3 +199,49 @@ server.listen(PORT, () => {
     console.log(`[BÚNKER BLINDADO ACTIVO] Neurona operando en el puerto ${PORT}`);
 });
 
+
+
+function conectarBunkerBinance() {
+  const ws = new WebSocket('wss://stream.binance.com:9443/ws/!miniTicker@arr');
+
+  ws.on('open', () => {
+    console.log('--- BUNKER CONECTADO A BINANCE: Tubería abierta y activa ---');
+  });
+
+  ws.on('message', (data) => {
+    try {
+      const parsedData = JSON.parse(data);
+      
+      if (Array.isArray(parsedData)) {
+        parsedData.forEach(ticker => {
+          // Solo dejamos pasar lo que está en nuestra lista blanca de alta liquidez
+          if (WHITELIST_PAIRS.includes(ticker.s)) {
+            ramBunkerState.cryptoFeeds[ticker.s] = {
+              symbol: ticker.s,
+              price: ticker.c,
+              high: ticker.h,
+              low: ticker.l,
+              volume: ticker.v,
+              time: Date.now()
+            };
+          }
+        });
+      }
+    } catch (err) {
+      console.error('Error procesando el flujo de Binance:', err.message);
+    }
+  });
+
+  ws.on('error', (err) => {
+    console.error('Error en el WebSocket de Binance:', err.message);
+  });
+
+  ws.on('close', () => {
+    console.log('Conexión cerrada. Reintentando conectar el Bunker en 5 segundos...');
+    setTimeout(conectarBunkerBinance, 5000);
+  });
+}
+
+// Arrancamos el motor de la conexión
+conectarBunkerBinance();
+

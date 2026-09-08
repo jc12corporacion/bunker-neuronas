@@ -73,7 +73,7 @@ async function sincronizarCriptosReales() {
             });
         }
     } catch (err) {
-        // Silencioso para evitar que tire abajo el hilo principal si la API externa titubea
+        // Control silencioso para proteger el hilo principal
     }
 }
 
@@ -155,3 +155,4 @@ server.listen(PORT, '0.0.0.0', () => {
     sincronizarForexReales();
     iniciarMotorDeAltaFrecuencia();
 });
+

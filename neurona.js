@@ -45,7 +45,7 @@ let marketRAM = {
     forexCommodities: new Map()
 };
 
-// Inicialización base en memoria RAM para que el servidor arranque de inmediato sin esperar la red
+// Inicialización base en RAM para arranque inmediato
 function inicializarBunkerRAM() {
     WHITELIST_CRYPTO.forEach(pair => {
         let base = pair.includes('BTC') ? 61200 : pair.includes('ETH') ? 2450 : 1.0;
@@ -60,7 +60,7 @@ function inicializarBunkerRAM() {
 }
 inicializarBunkerRAM();
 
-// Sincronización remota limpia (fuera del ciclo del gráfico para no estresar la API)
+// Sincronización limpia con CoinCap (Libre de bloqueo 451 en Render)
 async function sincronizarCriptosReales() {
     try {
         const response = await axios.get('https://api.coincap.io/v2/assets?limit=100', { timeout: 5000 });
@@ -76,6 +76,7 @@ async function sincronizarCriptosReales() {
     } catch (err) {}
 }
 
+// Sincronización de Forex limpia y sin saturar
 async function sincronizarForexReal() {
     try {
         const response = await axios.get('https://open.er-api.com/v6/latest/USD', { timeout: 5000 });
@@ -103,16 +104,15 @@ async function sincronizarForexReal() {
     } catch (err) {}
 }
 
-// Llamadas a las APIs externas bien espaciadas en segundo plano (sin tocar el motor del gráfico)
+// Llamadas espaciadas en segundo plano
 setInterval(sincronizarCriptosReales, 10000);
 setInterval(sincronizarForexReal, 60000);
 sincronizarCriptosReales();
 sincronizarForexReal();
 
-// NEURONA DE ALTA FRECUENCIA (50ms): Reparte los precios a los gráficos del frontend por WebSocket localmente
+// NEURONA DE ALTA FRECUENCIA (50ms): Despacha el precio localmente al frontend sin estresar ninguna API
 function iniciarMotorDeAltaFrecuencia() {
     setInterval(() => {
-        // Micro-variación local de alta velocidad para alimentar el Canvas fluidamente sin saturar la red externa
         marketRAM.crypto.forEach((data) => {
             const factor = data.price < 1 ? 0.0005 : 0.00005;
             data.price = Number((data.price + (Math.random() - 0.49) * factor * data.price).toFixed(data.price < 1 ? 6 : 2));

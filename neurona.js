@@ -1,4 +1,9 @@
-onst WHITELIST_PAIRS = [
+const WebSocket = require('ws');
+const axios = require('axios');
+const http = require('http');
+const express = require('express');
+
+const WHITELIST_PAIRS = [
   'BTCUSDT', 'ETHUSDT', 'BNBUSDT', 'SOLUSDT', 'XRPUSDT',
   'ADAUSDT', 'DOGEUSDT', 'AVAXUSDT', 'LINKUSDT', 'SUIUSDT',
   'NEARUSDT', 'APTUSDT', 'RENDERUSDT', 'INJUSDT', 'ARBUSDT',
@@ -19,11 +24,6 @@ onst WHITELIST_PAIRS = [
   'MEWUSDT', 'NOTUSDT', 'DOGSUSDT', 'POPCATUSDT', 'NEIROUSDT',
   'TURBOUSDT', 'PNUTUSDT', 'ACTUSDT', 'GOATUSDT', 'USDCUSDT'
 ];
-
-const WebSocket = require('ws');
-const axios = require('axios');
-const http = require('http');
-const express = require('express');
 
 const app = express();
 const server = http.createServer(app);
@@ -161,7 +161,6 @@ async function sincronizarBunkerMercadosReales() {
   }
 }
 
-// Motor de alta frecuencia en RAM (Micro-oscilación natural basada en liquidez real)
 function pulsarTicksAltaFrecuencia() {
     marketRAM.crypto.forEach((data, pair) => {
         const delta = (Math.random() - 0.5) * 0.0004 * data.price;
@@ -208,10 +207,9 @@ wss.on('connection', (ws) => {
     } catch (err) {}
 });
 
-// Inicialización de ciclos
 sincronizarBunkerMercadosReales();
-setInterval(sincronizarBunkerMercadosReales, 15000); // Sincronización real externa controlada
-setInterval(pulsarTicksAltaFrecuencia, 1000);          // Emisión fluida en milisegundos hacia el Canvas
+setInterval(sincronizarBunkerMercadosReales, 15000); 
+setInterval(pulsarTicksAltaFrecuencia, 1000);          
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {

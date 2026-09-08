@@ -201,50 +201,34 @@ server.listen(PORT, () => {
 
 
 
-function conectarBunkerBinance() {
-  const ws = new WebSocket('wss://data-stream.binance.vision:9443/ws/!miniTicker@arr');
-
-
-  ws.on('open', () => {
-    console.log('--- BUNKER CONECTADO A BINANCE: Tubería abierta y activa ---');
-  });
-
-  ws.on('message', (data) => {
-    try {
-      const parsedData = JSON.parse(data);
-      
-      if (Array.isArray(parsedData)) {
-        parsedData.forEach(ticker => {
-          // Solo dejamos pasar lo que está en nuestra lista blanca de alta liquidez
-          if (WHITELIST_PAIRS.includes(ticker.s)) {
-            ramBunkerState.cryptoFeeds[ticker.s] = {
-              symbol: ticker.s,
-              price: ticker.c,
-              high: ticker.h,
-              low: ticker.l,
-              volume: ticker.v,
-              time: Date.now()
-            };
-          }
-        });
-      }
-    } catch (err) {
-      console.error('Error procesando el flujo de Binance:', err.message);
+async function sincronizarBunkerBinanceHTTP() {
+  try {
+    const response = await axios.get('https://api.binance.com/api/v3/ticker/24hr');
+    const tickers = response.data;
+    
+    if (Array.isArray(tickers)) {
+      tickers.forEach(ticker => {
+        if (WHITELIST_PAIRS.includes(ticker.symbol)) {
+          ramBunkerState.cryptoFeeds[ticker.symbol] = {
+            symbol: ticker.symbol,
+            price: ticker.lastPrice,
+            high: ticker.highPrice,
+            low: ticker.lowPrice,
+            volume: ticker.volume,
+            time: Date.now()
+          };
+        }
+      });
+      console.log(`[BUNKER ACTIVO] RAM sincronizada con éxito. Pares en vigilancia: ${Object.keys(ramBunkerState.cryptoFeeds).length}`);
     }
-  });
-
-  ws.on('error', (err) => {
-    console.error('Error en el WebSocket de Binance:', err.message);
-  });
-
-  ws.on('close', () => {
-    console.log('Conexión cerrada. Reintentando conectar el Bunker en 5 segundos...');
-    setTimeout(conectarBunkerBinance, 5000);
-  });
+  } catch (err) {
+    console.error('[ALERTA DE RED] Fallo en API externa, manteniendo estado en RAM:', err.message);
+  }
 }
 
-// Arrancamos el motor de la conexión
-conectarBunkerBinance();
+// Sincronizar de inmediato y luego cada 3 segundos
+sincronizarBunkerBinanceHTTP();
+setInterval(sincronizarBunkerBinanceHTTP, 3000);
 
 
 

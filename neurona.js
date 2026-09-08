@@ -1,26 +1,27 @@
 const WHITELIST_PAIRS = [
-  'BTCUSDT', 'ETHUSDT', 'BNBUSDT', 'SOLUSDT', 'XRPUSDT', 
-  'ADAUSDT', 'DOGEUSDT', 'AVAXUSDT', 'LINKUSDT', 'SUIUSDT', 
-  'NEARUSDT', 'APTUSDT', 'RENDERUSDT', 'INJUSDT', 'ARBUSDT', 
-  'OPUSDT', 'MATICUSDT', 'POLUSDT', 'FTMUSDT', 'TIAUSDT', 
-  'SEIUSDT', 'FETUSDT', 'ICPUSDT', 'ATOMUSDT', 'UNIUSDT', 
-  'PEPEUSDT', 'SHIBUSDT', 'WIFUSDT', 'FLOKIUSDT', 'BONKUSDT', 
-  'LTCUSDT', 'BCHUSDT', 'ETCUSDT', 'FILUSDT', 'GRTUSDT', 
-  'RUNEUSDT', 'STXUSDT', 'IMXUSDT', 'ALGOUSDT', 'VETUSDT', 
-  'HBARUSDT', 'EGLDUSDT', 'THETAUSDT', 'AXSUSDT', 'SANDUSDT', 
-  'MANAUSDT', 'GALAUSDT', 'CHZUSDT', 'FLOWUSDT', 'CRVUSDT', 
-  'LDOUSDT', 'SNXUSDT', 'MKRUSDT', 'AAVEUSDT', 'COMPUSDT', 
-  'ZRXUSDT', 'BATUSDT', 'ENJUSDT', 'KAVAUSDT', 'ZILUSDT', 
-  'IOTXUSDT', 'SKLUSDT', 'OCEANUSDT', 'CTSIUSDT', 'RLCUSDT', 
-  'BANDUSDT', 'DASHUSDT', 'ZECUSDT', 'XMRUSDT', 'EOSUSDT', 
-  'NEOUSDT', 'ONTUSDT', 'QTUMUSDT', 'ICXUSDT', 'IOSTUSDT', 
-  'RVNUSDT', 'ZENUSDT', 'SCUSDT', 'CKBUSDT', 'HNTUSDT', 
-  'ARUSDT', 'STORJUSDT', 'GLMRUSDT', 'ASTRUSDT', 'MOVRUSDT', 
-  'BOMEUSDT', 'MEWUSDT', 'NOTUSDT', 'DOGSUSDT', 'POPCATUSDT', 
-  'NEIROUSDT', 'TURBOUSDT', 'PNUTUSDT', 'ACTUSDT', 'GOATUSDT', 
+  'BTCUSDT', 'ETHUSDT', 'BNBUSDT', 'SOLUSDT', 'XRPUSDT',
+  'ADAUSDT', 'DOGEUSDT', 'AVAXUSDT', 'LINKUSDT', 'SUIUSDT',
+  'NEARUSDT', 'APTUSDT', 'RENDERUSDT', 'INJUSDT', 'ARBUSDT',
+  'OPUSDT', 'MATICUSDT', 'POLUSDT', 'FTMUSDT', 'TIAUSDT',
+  'SEIUSDT', 'FETUSDT', 'ICPUSDT', 'ATOMUSDT', 'UNIUSDT',
+  'PEPEUSDT', 'SHIBUSDT', 'WIFUSDT', 'FLOKIUSDT', 'BONKUSDT',
+  'LTCUSDT', 'BCHUSDT', 'ETCUSDT', 'FILUSDT', 'GRTUSDT',
+  'RUNEUSDT', 'STXUSDT', 'IMXUSDT', 'ALGOUSDT', 'VETUSDT',
+  'HBARUSDT', 'EGLDUSDT', 'THETAUSDT', 'AXSUSDT', 'SANDUSDT',
+  'MANAUSDT', 'GALAUSDT', 'CHZUSDT', 'FLOWUSDT', 'CRVUSDT',
+  'LDOUSDT', 'SNXUSDT', 'MKRUSDT', 'AAVEUSDT', 'COMPUSDT',
+  'ZRXUSDT', 'BATUSDT', 'ENJUSDT', 'KAVAUSDT', 'ZILUSDT',
+  'IOTXUSDT', 'SKLUSDT', 'OCEANUSDT', 'CTSIUSDT', 'RLCUSDT',
+  'BANDUSDT', 'DASHUSDT', 'ZECUSDT', 'XMRUSDT', 'EOSUSDT',
+  'NEOUSDT', 'ONTUSDT', 'QTUMUSDT', 'ICXUSDT', 'IOSTUSDT',
+  'RVNUSDT', 'ZENUSDT', 'SCUSDT', 'CKBUSDT', 'HNTUSDT',
+  'ARUSDT', 'STORJUSDT', 'GLMRUSDT', 'ASTRUSDT', 'MOVRUSDT',
+  'BOMEUSDT', 'MEWUSDT', 'NOTUSDT', 'DOGSUSDT', 'POPCATUSDT',
+  'NEIROUSDT', 'TURBOUSDT', 'PNUTUSDT', 'ACTUSDT', 'GOATUSDT',
   '1000SATSUSDT', '1000SHIBUSDT', '1000PEPEUSDT', '1000FLOKIUSDT', 'USDCUSDT'
 ];
 
+// Estructura unificada para evitar conflictos de memoria
 const ramBunkerState = {
   cryptoFeeds: {},
   forexFeeds: {}
@@ -56,27 +57,14 @@ app.get('/health', (req, res) => {
 });
 
 // ==========================================
-// 2. LISTA BLANCA DE CRIPTOMONEDAS (Top 100+ Más Líquidos)
-// ==========================================
-// Filtramos solo los pares institucionales y de alto volumen para evitar gráficos basura
-const ALLOWED_CRYPTO_PARES = new Set([
-    "BTCUSDT", "ETHUSDT", "SOLUSDT", "BNBUSDT", "XRPUSDT", "ADAUSDT", "AVAXUSDT", "LINKUSDT", 
-    "DOTUSDT", "MATICUSDT", "LTCUSDT", "UNIUSDT", "ATOMUSDT", "NEARUSDT", "ICPUSDT", "APTUSDT", 
-    "OPUSDT", "ARBUSDT", "SUIUSDT", "INJUSDT", "RENDERUSDT", "TIAUSDT", "FETUSDT", "DOGEUSDT", 
-    "SHIBUSDT", "PEPEUSDT", "WIFUSDT", "BONKUSDT", "XLMUSDT", "BCHUSDT", "ETCUSDT", "FILUSDT",
-    "ARBUSDT", "IMXUSDT", "GRTUSDT", "SNXUSDT", "FTMUSDT", "RUNEUSDT", "KASUSDT", "SEIUSDT"
-    // (Aquí puedes seguir sumando hasta completar tu bloque estricto de los 100 más fuertes)
-]);
-
-// ==========================================
-// 3. CAJAS DE MEMORIA RAM ESCALABLES
+// 2. CAJAS DE MEMORIA RAM ESCALABLES
 // ==========================================
 let marketRAM = {
-    crypto: new Map(),           
+    crypto: new Map(),          
     forexCommodities: new Map()  
 };
 
-// Inicializar caja base de Forex, Metales y Petróleo (Los 50 más líquidos + Oro y Petróleo)
+// Inicializar caja base de Forex, Metales y Petróleo
 const initialForexCommodityPairs = [
     { symbol: "EURUSD", price: 1.0850, category: "forex" },
     { symbol: "GBPUSD", price: 1.2720, category: "forex" },
@@ -88,10 +76,10 @@ const initialForexCommodityPairs = [
     { symbol: "EURGBP", price: 0.8520, category: "forex" },
     { symbol: "EURJPY", price: 169.40, category: "forex" },
     { symbol: "GBPJPY", price: 198.20, category: "forex" },
-    { symbol: "XAUUSD", price: 2320.10, category: "metal" }, // Oro
-    { symbol: "XAGUSD", price: 29.40,  category: "metal" }, // Plata
-    { symbol: "WTIUSD", price: 78.40,  category: "energy" },// Petróleo WTI
-    { symbol: "BRENT",  price: 82.50,  category: "energy" } // Petróleo Brent
+    { symbol: "XAUUSD", price: 2320.10, category: "metal" },
+    { symbol: "XAGUSD", price: 29.40,  category: "metal" },
+    { symbol: "WTIUSD", price: 78.40,  category: "energy" },
+    { symbol: "BRENT",  price: 82.50,  category: "energy" }
 ];
 
 initialForexCommodityPairs.forEach(item => {
@@ -100,48 +88,64 @@ initialForexCommodityPairs.forEach(item => {
         category: item.category,
         updated: Date.now()
     });
+    ramBunkerState.forexFeeds[item.symbol] = {
+        price: item.price,
+        category: item.category,
+        updated: Date.now()
+    };
 });
 
 // ==========================================
-// 4. EL ENCHUFE DE APIS EXTERNAS (Protegido y Filtrado)
+// 3. EL ENCHUFE DE APIS EXTERNAS (HTTP Polling anti-451)
 // ==========================================
-async function fetchAndProcessFeeds() {
-    try {
-        // Petición a Binance optimizada
-        const binanceRes = await axios.get('https://api.binance.com/api/v3/ticker/bookTicker', { timeout: 4000 });
-        
-        if (binanceRes.data && Array.isArray(binanceRes.data)) {
-            binanceRes.data.forEach(ticker => {
-                // Solo guardamos si el par está dentro de nuestra lista blanca estricta
-                if (ALLOWED_CRYPTO_PARES.has(ticker.symbol)) {
-                    marketRAM.crypto.set(ticker.symbol, {
-                        price: parseFloat(ticker.bidPrice),
-                        bid: parseFloat(ticker.bidPrice),
-                        ask: parseFloat(ticker.askPrice),
-                        updated: Date.now()
-                    });
-                }
-            });
+async function sincronizarBunkerBinanceHTTP() {
+  try {
+    // Usamos el endpoint global de 24hr que pasa sin problemas por el filtro de Render
+    const response = await axios.get('https://api.binance.com/api/v3/ticker/24hr', { timeout: 5000 });
+    const tickers = response.data;
+    
+    if (Array.isArray(tickers)) {
+      tickers.forEach(ticker => {
+        if (WHITELIST_PAIRS.includes(ticker.symbol)) {
+          // Actualizamos memoria interna y el estado RAM compartido
+          marketRAM.crypto.set(ticker.symbol, {
+            price: parseFloat(ticker.lastPrice),
+            bid: parseFloat(ticker.bidPrice || ticker.lastPrice),
+            ask: parseFloat(ticker.askPrice || ticker.lastPrice),
+            updated: Date.now()
+          });
+
+          ramBunkerState.cryptoFeeds[ticker.symbol] = {
+            symbol: ticker.symbol,
+            price: ticker.lastPrice,
+            high: ticker.highPrice,
+            low: ticker.lowPrice,
+            volume: ticker.volume,
+            time: Date.now()
+          };
         }
+      });
 
-        // Actualización fluida para la caja de Forex y Commodities (Sincronizada con feed o simulación de alta precisión)
-        for (let [symbol, data] of marketRAM.forexCommodities.entries()) {
-            let shift = (Math.random() - 0.49) * (data.price * 0.00008);
-            data.price = Number((data.price + shift).toFixed(data.price > 100 ? 2 : 4));
-            data.updated = Date.now();
-            marketRAM.forexCommodities.set(symbol, data);
-        }
+      // Simulación fluida para Forex y Commodities
+      for (let [symbol, data] of marketRAM.forexCommodities.entries()) {
+          let shift = (Math.random() - 0.49) * (data.price * 0.00008);
+          data.price = Number((data.price + shift).toFixed(data.price > 100 ? 2 : 4));
+          data.updated = Date.now();
+          marketRAM.forexCommodities.set(symbol, data);
+          ramBunkerState.forexFeeds[symbol] = data;
+      }
 
-        // Difundir el paquete limpio a través de la tubería
-        broadcastToPlatform();
-
-    } catch (err) {
-        console.error("[ALERTA DE RED] Fallo en API externa. La RAM mantiene el último estado estable:", err.message);
+      // Difundir por WebSocket a los clientes conectados
+      broadcastToPlatform();
+      console.log(`[BUNKER ACTIVO] RAM sincronizada. Pares cripto en vigilancia: ${Object.keys(ramBunkerState.cryptoFeeds).length}`);
     }
+  } catch (err) {
+    console.error('[ALERTA DE RED] Fallo en API externa, la RAM mantiene el último estado estable:', err.message);
+  }
 }
 
 // ==========================================
-// 5. LA TUBERÍA DE SALIDA (WebSocket Masivo)
+// 4. LA TUBERÍA DE SALIDA (WebSocket Masivo)
 // ==========================================
 function broadcastToPlatform() {
     const payload = JSON.stringify({
@@ -169,12 +173,12 @@ wss.on('connection', (ws) => {
     console.log("[NEURONA] Terminal conectado de forma segura a TradeRival.");
 
     try {
-        ws.send(JSON.stringify({ 
-            type: 'INIT_STATE', 
+        ws.send(JSON.stringify({
+            type: 'INIT_STATE',
             data: {
                 crypto: Object.fromEntries(marketRAM.crypto),
                 forexCommodities: Object.fromEntries(marketRAM.forexCommodities)
-            } 
+            }
         }));
     } catch (err) {
         console.error("Error enviando estado inicial:", err.message);
@@ -190,49 +194,8 @@ wss.on('connection', (ws) => {
 });
 
 // ==========================================
-// 6. LATIDO DEL MOTOR (Reloj de 1 Segundo)
+// 5. ENDPOINT PARA EL FRONTEND
 // ==========================================
-setInterval(fetchAndProcessFeeds, 1000);
-
-const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => {
-    console.log(`[BÚNKER BLINDADO ACTIVO] Neurona operando en el puerto ${PORT}`);
-});
-
-
-
-async function sincronizarBunkerBinanceHTTP() {
-  try {
-    const response = await axios.get('https://api.binance.com/api/v3/ticker/24hr');
-    const tickers = response.data;
-    
-    if (Array.isArray(tickers)) {
-      tickers.forEach(ticker => {
-        if (WHITELIST_PAIRS.includes(ticker.symbol)) {
-          ramBunkerState.cryptoFeeds[ticker.symbol] = {
-            symbol: ticker.symbol,
-            price: ticker.lastPrice,
-            high: ticker.highPrice,
-            low: ticker.lowPrice,
-            volume: ticker.volume,
-            time: Date.now()
-          };
-        }
-      });
-      console.log(`[BUNKER ACTIVO] RAM sincronizada con éxito. Pares en vigilancia: ${Object.keys(ramBunkerState.cryptoFeeds).length}`);
-    }
-  } catch (err) {
-    console.error('[ALERTA DE RED] Fallo en API externa, manteniendo estado en RAM:', err.message);
-  }
-}
-
-// Sincronizar de inmediato y luego cada 3 segundos
-sincronizarBunkerBinanceHTTP();
-setInterval(sincronizarBunkerBinanceHTTP, 3000);
-
-
-
-// Endpoint para que el frontend consulte el estado actual de la RAM del Bunker
 app.get('/api/bunker-status', (req, res) => {
   res.json({
     status: 'ONLINE',
@@ -240,3 +203,15 @@ app.get('/api/bunker-status', (req, res) => {
     data: ramBunkerState.cryptoFeeds
   });
 });
+
+// ==========================================
+// 6. LATIDO DEL MOTOR (Reloj de 3 Segundos)
+// ==========================================
+sincronizarBunkerBinanceHTTP();
+setInterval(sincronizarBunkerBinanceHTTP, 3000);
+
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, () => {
+    console.log(`[BÚNKER BLINDADO ACTIVO] Neurona operando en el puerto ${PORT}`);
+});
+

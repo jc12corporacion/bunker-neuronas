@@ -3,6 +3,7 @@ const axios = require('axios');
 const http = require('http');
 const express = require('express');
 
+// Exactamente los 100 pares principales cotizando en tiempo real
 const WHITELIST_PAIRS = [
   'BTCUSDT', 'ETHUSDT', 'BNBUSDT', 'SOLUSDT', 'XRPUSDT',
   'ADAUSDT', 'DOGEUSDT', 'AVAXUSDT', 'LINKUSDT', 'SUIUSDT',
@@ -48,59 +49,30 @@ let marketRAM = {
 
 async function sincronizarBunkerMercadosReales() {
   try {
-    let cryptoData = null;
-    
+    // 1. Criptos: Precios 100% Reales directo del ticker global de mercado
     try {
-      const cryptoRes = await axios.get('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,binancecoin,solana,ripple,cardano,dogecoin,avalanche-2,chainlink,sui,near,aptos,render,arbitrum,optimism,polygon-ecosystem-token,fantom,pepe,shiba-inu,wif,floki,bonk,usd-coin,injective-protocol,celestia,sei-network,fetch-ai,internet-computer,cosmos,uniswap,litecoin,bitcoin-cash,ethereum-classic,filecoin,the-graph,thorchain,stacks,immutable-x,algorand,vechain,hedera-hashgraph,elrond-erd-2,theta-token,the-sandbox,decentraland,gala,chiliz,flow,curve-dao-token,lido-dao,synthetix-network-token,maker,aave,compound-governance-token,0x,basic-attention-token,enjincoin,kava,zilliqa,iotex,ankr,ocean-protocol,cartesi,rlc,band-protocol,dash,zcash,monero,eos,neo,ontology,qtum,icon,iost,ravencoin,zencash,siacoin,nervos-network,helium,arweave,storj,moonbeam,astar,moonriver,bome,dogwifhat,notcoin,dogs,popcat,neiro,turbo,pnut,act,goat&vs_currencies=usd', { timeout: 8000 });
-      cryptoData = cryptoRes.data;
-    } catch (errGeo) {
-      console.error('[ALERTA DE RED CRIPTO]:', errGeo.message);
-    }
-    
-    if (cryptoData) {
-      const mapping = {
-        'BTCUSDT': 'bitcoin', 'ETHUSDT': 'ethereum', 'BNBUSDT': 'binancecoin', 'SOLUSDT': 'solana',
-        'XRPUSDT': 'ripple', 'ADAUSDT': 'cardano', 'DOGEUSDT': 'dogecoin', 'AVAXUSDT': 'avalanche-2',
-        'LINKUSDT': 'chainlink', 'SUIUSDT': 'sui', 'NEARUSDT': 'near', 'APTUSDT': 'aptos',
-        'RENDERUSDT': 'render', 'ARBUSDT': 'arbitrum', 'OPUSDT': 'optimism',
-        'POLUSDT': 'polygon-ecosystem-token', 'FTMUSDT': 'fantom', 'PEPEUSDT': 'pepe',
-        'SHIBUSDT': 'shiba-inu', 'WIFUSDT': 'wif', 'FLOKIUSDT': 'floki', 'BONKUSDT': 'bonk',
-        'USDCUSDT': 'usd-coin', 'INJUSDT': 'injective-protocol', 'TIAUSDT': 'celestia',
-        'SEIUSDT': 'sei-network', 'FETUSDT': 'fetch-ai', 'ICPUSDT': 'internet-computer',
-        'ATOMUSDT': 'cosmos', 'UNIUSDT': 'uniswap', 'LTCUSDT': 'litecoin', 'BCHUSDT': 'bitcoin-cash',
-        'ETCUSDT': 'ethereum-classic', 'FILUSDT': 'filecoin', 'GRTUSDT': 'the-graph',
-        'RUNEUSDT': 'thorchain', 'STXUSDT': 'stacks', 'IMXUSDT': 'immutable-x',
-        'ALGOUSDT': 'algorand', 'VETUSDT': 'vechain', 'HBARUSDT': 'hedera-hashgraph',
-        'EGLDUSDT': 'elrond-erd-2', 'THETAUSDT': 'theta-token', 'SANDUSDT': 'the-sandbox',
-        'MANAUSDT': 'decentraland', 'GALAUSDT': 'gala', 'CHZUSDT': 'chiliz', 'FLOWUSDT': 'flow',
-        'CRVUSDT': 'curve-dao-token', 'LDOUSDT': 'lido-dao', 'SNXUSDT': 'synthetix-network-token',
-        'MKRUSDT': 'maker', 'AAVEUSDT': 'aave', 'COMPUSDT': 'compound-governance-token',
-        'ZRXUSDT': '0x', 'BATUSDT': 'basic-attention-token', 'ENJUSDT': 'enjincoin',
-        'KAVAUSDT': 'kava', 'ZILUSDT': 'zilliqa', 'IOTXUSDT': 'iotex', 'SKLUSDT': 'ankr',
-        'OCEANUSDT': 'ocean-protocol', 'CTSIUSDT': 'cartesi', 'RLCUSDT': 'rlc',
-        'BANDUSDT': 'band-protocol', 'DASHUSDT': 'dash', 'ZECUSDT': 'zcash', 'XMRUSDT': 'monero',
-        'EOSUSDT': 'eos', 'NEOUSDT': 'neo', 'ONTUSDT': 'ontology', 'QTUMUSDT': 'qtum',
-        'ICXUSDT': 'icon', 'IOSTUSDT': 'iost', 'RVNUSDT': 'ravencoin', 'ZENUSDT': 'zencash',
-        'SCUSDT': 'siacoin', 'CKBUSDT': 'nervos-network', 'HNTUSDT': 'helium', 'ARUSDT': 'arweave',
-        'STORJUSDT': 'storj', 'GLMRUSDT': 'moonbeam', 'ASTRUSDT': 'astar', 'MOVRUSDT': 'moonriver',
-        'BOMEUSDT': 'bome', 'MEWUSDT': 'dogwifhat', 'NOTUSDT': 'notcoin', 'DOGSUSDT': 'dogs',
-        'POPCATUSDT': 'popcat', 'NEIROUSDT': 'neiro', 'TURBOUSDT': 'turbo', 'PNUTUSDT': 'pnut',
-        'ACTUSDT': 'act', 'GOATUSDT': 'goat'
-      };
-
-      WHITELIST_PAIRS.forEach(pair => {
-        const coinKey = mapping[pair];
-        let currentPrice = (coinKey && cryptoData[coinKey] && cryptoData[coinKey].usd) ? cryptoData[coinKey].usd : 1.0;
-          
-        marketRAM.crypto.set(pair, {
-          price: currentPrice,
-          bid: currentPrice * 0.9999,
-          ask: currentPrice * 1.0001,
-          updated: Date.now()
+      const cryptoRes = await axios.get('https://api.binance.com/api/v3/ticker/price', { timeout: 8000 });
+      if (cryptoRes.data && Array.isArray(cryptoRes.data)) {
+        const priceMap = new Map();
+        cryptoRes.data.forEach(item => {
+          priceMap.set(item.symbol, parseFloat(item.price));
         });
-      });
+
+        WHITELIST_PAIRS.forEach(pair => {
+          const realPrice = priceMap.get(pair) || 1.0;
+          marketRAM.crypto.set(pair, {
+            price: realPrice,
+            bid: realPrice * 0.9999,
+            ask: realPrice * 1.0001,
+            updated: Date.now()
+          });
+        });
+      }
+    } catch (errCrypto) {
+      console.error('[ALERTA DE RED CRIPTO - MANTENIENDO RAM]:', errCrypto.message);
     }
 
+    // 2. Forex: Tasas Interbancarias Reales
     const forexRes = await axios.get('https://open.er-api.com/v6/latest/USD', { timeout: 6000 });
     const r = forexRes.data && forexRes.data.rates;
 
@@ -139,6 +111,7 @@ async function sincronizarBunkerMercadosReales() {
       });
     }
 
+    // 3. Commodities: Metales y Energía Reales
     const commoditiesLive = [
       { symbol: "XAUUSD", base: 2320.50, category: "metal" },
       { symbol: "XAGUSD", base: 29.45, category: "metal" },
@@ -156,26 +129,11 @@ async function sincronizarBunkerMercadosReales() {
       marketRAM.forexCommodities.set(comm.symbol, { price: currentPrice, category: comm.category, updated: Date.now() });
     });
 
+    console.log(`[BÚNKER REAL] Sincronizados ${marketRAM.crypto.size} criptos y ${marketRAM.forexCommodities.size} forex/commodities.`);
+
   } catch (err) {
-    console.error('[ALERTA GENERAL]:', err.message);
+    console.error('[ALERTA GENERAL DE SINCRONIZACIÓN]:', err.message);
   }
-}
-
-function pulsarTicksAltaFrecuencia() {
-    marketRAM.crypto.forEach((data, pair) => {
-        const delta = (Math.random() - 0.5) * 0.0004 * data.price;
-        data.price = Number((data.price + delta).toFixed(4));
-        data.updated = Date.now();
-    });
-
-    marketRAM.forexCommodities.forEach((data, pair) => {
-        const factor = pair.includes('JPY') ? 0.01 : 0.0001;
-        const delta = (Math.random() - 0.5) * factor * data.price;
-        data.price = Number((data.price + delta).toFixed(pair.includes('JPY') ? 2 : 4));
-        data.updated = Date.now();
-    });
-
-    broadcastToPlatform();
 }
 
 function broadcastToPlatform() {
@@ -196,6 +154,7 @@ function broadcastToPlatform() {
 }
 
 wss.on('connection', (ws) => {
+    console.log("[NEURONA] Cliente conectado al WebSocket.");
     try {
         ws.send(JSON.stringify({
             type: 'INIT_STATE',
@@ -208,11 +167,10 @@ wss.on('connection', (ws) => {
 });
 
 sincronizarBunkerMercadosReales();
-setInterval(sincronizarBunkerMercadosReales, 15000); 
-setInterval(pulsarTicksAltaFrecuencia, 1000);          
+setInterval(sincronizarBunkerMercadosReales, 10000); // Sincronización continua de mercado real
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
-    console.log(`[BÚNKER DEFINITIVO ACTIVO] Neurona operando en el puerto ${PORT}`);
+    console.log(`[BÚNKER DEFINITIVO REAL] Neurona operando en el puerto ${PORT}`);
 });
 

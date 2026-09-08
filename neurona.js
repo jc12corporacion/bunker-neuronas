@@ -36,7 +36,6 @@ const WHITELIST_FOREX = [
 
 const app = express();
 
-// Rutas raíz obligatorias añadidas para responderle al Health Check de Render y evitar el timeout del puerto
 app.get('/', (req, res) => {
     res.status(200).json({
         status: 'online',
@@ -157,8 +156,6 @@ wss.on('connection', (ws) => {
 const PORT = process.env.PORT || 10000;
 server.listen(PORT, '0.0.0.0', () => {
     console.log(`[NEURONA ACTIVA] Tubería real abierta despachando a 50ms en puerto ${PORT}`);
-    sincronizarCriptosReales();
-    sincronizarForexReales();
     iniciarMotorDeAltaFrecuencia();
 });
 
